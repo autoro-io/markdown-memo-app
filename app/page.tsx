@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Search, Trash2, PenSquare, Eye, Edit3 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 interface Memo {
   id: string
@@ -43,94 +47,6 @@ const groupMemosByDate = (memos: Memo[]) => {
   return groups
 }
 
-const renderMarkdown = (content: string) => {
-  const html = content
-    // エスケープ処理
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-
-    // コードブロック（\`\`\`で囲まれた部分）
-    .replace(
-      /```([\s\S]*?)```/g,
-      '<pre class="bg-gray-100 p-2 rounded text-xs overflow-x-auto mb-2"><code>$1</code></pre>',
-    )
-
-    // ヘッダー
-    .replace(/^### (.*$)/gim, '<h3 class="text-sm font-semibold mb-1 mt-2 text-gray-800">$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-base font-semibold mb-1 mt-3 text-gray-800">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 class="text-lg font-bold mb-2 mt-3 text-gray-900">$1</h1>')
-
-    // 水平線
-    .replace(/^---$/gm, '<hr class="border-gray-300 my-2">')
-
-    // 引用
-    .replace(
-      /^> (.*$)/gim,
-      '<blockquote class="border-l-4 border-gray-300 pl-4 py-1 mb-2 text-gray-600 italic">$1</blockquote>',
-    )
-
-    // チェックボックス付きリスト
-    .replace(
-      /^- \[x\] (.*$)/gim,
-      '<div class="flex items-center mb-0.5"><input type="checkbox" checked disabled class="mr-2 text-xs"><span class="text-sm line-through text-gray-500">$1</span></div>',
-    )
-    .replace(
-      /^- \[ \] (.*$)/gim,
-      '<div class="flex items-center mb-0.5"><input type="checkbox" disabled class="mr-2 text-xs"><span class="text-sm">$1</span></div>',
-    )
-
-    // 番号付きリスト
-    .replace(
-      /^(\d+)\. (.*$)/gim,
-      '<div class="flex mb-0.5"><span class="text-sm font-medium mr-2 text-gray-600">$1.</span><span class="text-sm">$2</span></div>',
-    )
-
-    // 通常のリスト
-    .replace(
-      /^- (.*$)/gim,
-      '<div class="flex items-start mb-0.5"><span class="text-sm mr-2 text-gray-600">•</span><span class="text-sm">$1</span></div>',
-    )
-
-    // リンク
-    .replace(
-      /\[([^\]]+)\]$$([^)]+)$$/g,
-      '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>',
-    )
-
-    // 画像
-    .replace(/!\[([^\]]*)\]$$([^)]+)$$/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded mb-4">')
-
-    // 太字
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-
-    // イタリック
-    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-
-    // インラインコード
-    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">$1</code>')
-
-    // 改行処理
-    .replace(/\n\n/g, '</p><p class="mb-1">')
-    .replace(/\n/g, "<br>")
-
-  // パラグラフで囲む（ただし、すでにHTMLタグで始まっている行は除く）
-  const lines = html.split("\n")
-  const processedLines = lines.map((line) => {
-    const trimmedLine = line.trim()
-    if (trimmedLine === "") return ""
-    if (trimmedLine.match(/^<(h[1-6]|hr|blockquote|div|pre|ul|ol|li)/)) {
-      return trimmedLine
-    }
-    if (trimmedLine.match(/^<\/(h[1-6]|hr|blockquote|div|pre|ul|ol|li)/)) {
-      return trimmedLine
-    }
-    return `<p class="mb-1 leading-relaxed">${trimmedLine}</p>`
-  })
-
-  return processedLines.join("\n")
-}
-
 export default function MarkdownMemoApp() {
   const [memos, setMemos] = useState<Memo[]>([
     {
@@ -143,6 +59,14 @@ export default function MarkdownMemoApp() {
     },
     {
       id: "2",
+      title: "TypeScriptサンプルコード",
+      content:
+        "# TypeScript コードサンプル\n\n## インターフェース定義\n\n```typescript\ninterface User {\n  id: number;\n  name: string;\n  email: string;\n  isActive: boolean;\n}\n\ninterface ApiResponse<T> {\n  data: T;\n  success: boolean;\n  message?: string;\n}\n```\n\n## 関数の例\n\n```typescript\n// ユーザー情報を取得する関数\nasync function fetchUser(userId: number): Promise<ApiResponse<User>> {\n  try {\n    const response = await fetch(`/api/users/${userId}`);\n    const data = await response.json();\n    \n    return {\n      data,\n      success: true\n    };\n  } catch (error) {\n    return {\n      data: null as any,\n      success: false,\n      message: error instanceof Error ? error.message : '不明なエラー'\n    };\n  }\n}\n\n// 配列操作の例\nconst users: User[] = [\n  { id: 1, name: 'Alice', email: 'alice@example.com', isActive: true },\n  { id: 2, name: 'Bob', email: 'bob@example.com', isActive: false }\n];\n\nconst activeUsers = users.filter(user => user.isActive);\n```\n\n## React コンポーネント\n\n```typescript\nimport React, { useState, useEffect } from 'react';\n\ninterface Props {\n  userId: number;\n}\n\nconst UserProfile: React.FC<Props> = ({ userId }) => {\n  const [user, setUser] = useState<User | null>(null);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    const loadUser = async () => {\n      setLoading(true);\n      const result = await fetchUser(userId);\n      \n      if (result.success) {\n        setUser(result.data);\n      }\n      setLoading(false);\n    };\n\n    loadUser();\n  }, [userId]);\n\n  if (loading) return <div>読み込み中...</div>;\n  if (!user) return <div>ユーザーが見つかりません</div>;\n\n  return (\n    <div className=\"user-profile\">\n      <h2>{user.name}</h2>\n      <p>Email: {user.email}</p>\n      <p>Status: {user.isActive ? 'アクティブ' : '非アクティブ'}</p>\n    </div>\n  );\n};\n\nexport default UserProfile;\n```",
+      createdAt: new Date(Date.now() - 43200000),
+      updatedAt: new Date(Date.now() - 43200000),
+    },
+    {
+      id: "3",
       title: "会議メモ",
       content:
         "## 定例会議\n\n### 議題\n- 進捗確認\n- 課題の共有\n\n### 決定事項\n**次回までに**完了予定のタスク：\n- デザインレビュー\n- テスト実装",
@@ -150,7 +74,7 @@ export default function MarkdownMemoApp() {
       updatedAt: new Date(Date.now() - 86400000),
     },
     {
-      id: "3",
+      id: "4",
       title: "タスクリスト",
       content: "# TODO\n\n- [x] 要件定義\n- [ ] UI設計\n- [ ] 実装\n- [ ] テスト\n\n*優先度高*のタスクから進める。",
       createdAt: new Date(Date.now() - 172800000),
@@ -276,11 +200,11 @@ export default function MarkdownMemoApp() {
   }
 
   return (
-    <div className="flex h-screen bg-white text-gray-900">
+    <div className="flex h-screen bg-white text-gray-900 overflow-hidden">
       {/* Left Sidebar */}
-      <div className="w-80 border-r border-gray-200 flex flex-col">
+      <div className="w-80 border-r border-gray-200 flex flex-col h-full">
         {/* Search and Delete Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center flex-1 mr-2">
             <Search className="w-4 h-4 text-gray-400 mr-2" />
             <Input
@@ -302,7 +226,7 @@ export default function MarkdownMemoApp() {
         </div>
 
         {/* Memo List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {Object.entries(groupedMemos).map(([date, memos]) => (
             <div key={date}>
               <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50">{date}</div>
@@ -331,16 +255,16 @@ export default function MarkdownMemoApp() {
 
         {/* Shift Selection Hint */}
         {isShiftPressed && (
-          <div className="px-3 py-2 bg-blue-50 border-t border-blue-200">
+          <div className="px-3 py-2 bg-blue-50 border-t border-blue-200 flex-shrink-0">
             <div className="text-xs text-blue-600">Shiftキーを押しながらクリックで複数選択</div>
           </div>
         )}
       </div>
 
       {/* Right Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
           <Button variant="ghost" size="sm" onClick={handleNewMemo} className="h-7 w-7 p-0 hover:bg-gray-100">
             <PenSquare className="w-4 h-4" />
           </Button>
@@ -368,7 +292,7 @@ export default function MarkdownMemoApp() {
         </div>
 
         {/* Editor/Preview */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-h-0">
           {selectedMemo ? (
             <>
               {!isPreviewMode ? (
@@ -377,16 +301,88 @@ export default function MarkdownMemoApp() {
                   value={selectedMemo.content}
                   onChange={(e) => handleContentChange(e.target.value)}
                   placeholder="メモを入力してください..."
-                  className="w-full h-full resize-none border-none shadow-none text-sm leading-relaxed p-4 focus-visible:ring-0"
+                  className="w-full h-full resize-none border-none shadow-none text-sm leading-relaxed p-4 focus-visible:ring-0 overflow-y-auto"
                 />
               ) : (
                 <div
                   ref={previewRef}
                   className="w-full h-full overflow-y-auto p-4 text-sm leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: renderMarkdown(selectedMemo.content),
-                  }}
-                />
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ children }) => <h1 className="text-lg font-bold mb-2 mt-3 text-gray-900">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-base font-semibold mb-1 mt-3 text-gray-800">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 text-gray-800">{children}</h3>,
+                      p: ({ children }) => <p className="mb-1 leading-relaxed text-sm">{children}</p>,
+                      ul: ({ children }) => <ul className="mb-2 pl-6 list-disc">{children}</ul>,
+                      ol: ({ children }) => <ol className="mb-2 pl-6 list-decimal">{children}</ol>,
+                      li: ({ children, ...props }) => {
+                        // チェックボックスリストアイテムの場合
+                        if (props.className?.includes('task-list-item')) {
+                          return <li className="mb-0.5 text-sm list-none flex items-center" {...props}>{children}</li>;
+                        }
+                        return <li className="mb-0.5 text-sm" {...props}>{children}</li>;
+                      },
+                      input: ({ type, checked, ...props }) => {
+                        if (type === 'checkbox') {
+                          return <input type="checkbox" checked={checked} disabled className="mr-2 text-xs" {...props} />;
+                        }
+                        return <input type={type} {...props} />;
+                      },
+                      blockquote: ({ children }) => (
+                        <blockquote className="border-l-4 border-gray-300 pl-4 py-1 mb-2 text-gray-600 italic text-sm">
+                          {children}
+                        </blockquote>
+                      ),
+                      code: ({ node, inline, className, children, ...props }: any) => {
+                        const match = /language-(\w+)/.exec(className || '')
+                        return !inline && match ? (
+                          <div className="bg-gray-900 rounded-lg p-4 mb-4 border border-gray-700">
+                            <SyntaxHighlighter
+                              style={tomorrow as any}
+                              language={match[1]}
+                              PreTag="div"
+                              className="!bg-transparent !text-xs !leading-5 !font-mono overflow-x-auto"
+                              customStyle={{
+                                background: 'transparent',
+                                fontSize: '11px',
+                                lineHeight: '1.4',
+                                padding: '0',
+                                margin: '0'
+                              }}
+                              {...props}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          </div>
+                        ) : (
+                          <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs font-mono border border-gray-300" {...props}>
+                            {children}
+                          </code>
+                        )
+                      },
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      a: ({ href, children }) => (
+                        <a 
+                          href={href} 
+                          className="text-blue-600 hover:text-blue-800 underline text-sm" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {children}
+                        </a>
+                      ),
+                      img: ({ src, alt }) => (
+                        <img src={src} alt={alt} className="max-w-full h-auto rounded mb-4" />
+                      ),
+                      hr: () => <hr className="border-gray-300 my-2" />,
+                    }}
+                  >
+                    {selectedMemo.content}
+                  </ReactMarkdown>
+                </div>
               )}
             </>
           ) : (
