@@ -36,6 +36,11 @@ export default function MarkdownMemoApp() {
   useEffect(() => {
     if (selectedMemo && !isUpdatingRef.current) {
       setLocalContent(selectedMemo.content || "")
+      
+      // 新しいメモ（空のコンテンツ）の場合は編集モードに切り替え
+      if (selectedMemo.content === "") {
+        setIsPreviewMode(false);
+      }
     }
   }, [selectedMemo?.content, selectedMemo?.id])
 
@@ -44,13 +49,16 @@ export default function MarkdownMemoApp() {
     if (selectedMemo && selectedMemo.content === "" && !isUpdatingRef.current) {
       setLocalContent("")
       // 新しいメモの場合、編集モードに切り替えてフォーカス
-      if (!isPreviewMode && textareaRef.current) {
-        setTimeout(() => {
-          textareaRef.current?.focus()
-        }, 100)
-      }
+      setIsPreviewMode(false);
+      
+      // フォーカスを設定
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+        }
+      }, 100);
     }
-  }, [selectedMemo?.id, isPreviewMode])
+  }, [selectedMemo?.id, selectedMemo?.content])
 
   const handleNewMemo = async () => {
     try {
@@ -63,7 +71,17 @@ export default function MarkdownMemoApp() {
       if (newMemo.id) {
         // 編集モードに切り替え
         setIsPreviewMode(false);
+        
+        // ページ遷移
         router.push(`/memos/${newMemo.id}`);
+        
+        // ローカル状態を初期化
+        setLocalContent("");
+        
+        // ページをリロードして確実にメモ一覧を更新
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
       }
     } catch (error) {
       console.error('Failed to create new memo:', error);
@@ -98,6 +116,18 @@ export default function MarkdownMemoApp() {
       }, 300) // 300ms のデバウンス
     }
   }
+
+  // 編集モードに切り替わった時にフォーカスを設定
+  useEffect(() => {
+    if (!isPreviewMode && textareaRef.current && selectedMemo) {
+      // 少し遅延してフォーカスを設定（レンダリング完了後）
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 50);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isPreviewMode, selectedMemo?.id])
 
   // クリーンアップ
   useEffect(() => {
