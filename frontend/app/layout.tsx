@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { useRouter, useParams } from 'next/navigation';
 import { Memo } from '@/type/type'
 import { useMemos } from '@/hooks/use-memos'
-import { MemosProvider } from '@/context/MemosContext'
+import { MemosProvider } from '@/contexts/MemosContext'
 
 const formatDate = (date: Date) => {
   const today = new Date()

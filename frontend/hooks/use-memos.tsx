@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { MemosContext } from "@/context/MemosContext";
+import { MemosContext } from "@/contexts/MemosContext";
 
 export const useMemos = () => {
   const context = useContext(MemosContext);
