@@ -30,5 +30,11 @@ export {
   SelectUserInput,
   CreateMemoInput,
   UpdateMemoInput,
-  SelectMemoInput
+  SelectMemoInput,
+  CreateUserSchema,
+  UpdateUserSchema,
+  SelectUserSchema,
+  CreateMemoSchema,
+  UpdateMemoSchema,
+  SelectMemoSchema,
 }

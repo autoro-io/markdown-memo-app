@@ -4,4 +4,7 @@ export default defineConfig({
   out: './db',
   schema: './src/db/schema.ts',
   dialect: 'sqlite',
+  dbCredentials: {
+    url: 'file:.db/libsql.db',
+  },
 });

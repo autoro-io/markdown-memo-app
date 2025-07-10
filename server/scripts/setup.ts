@@ -3,6 +3,12 @@ import { TYPES } from "../src/types";
 import { db } from "../src/db/libsql";
 import * as schema from "../src/db/schema";
 import { MemoService } from "../src/services/memo-service";
+import { migrate } from "drizzle-orm/libsql/migrator";
+
+// create database
+await migrate(db, {
+  migrationsFolder: "./db",
+})
 
 // Seed Data
 
