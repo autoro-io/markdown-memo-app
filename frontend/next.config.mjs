@@ -9,6 +9,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
+  serverExternalPackages: ['@libsql/client', 'drizzle-orm'],
+  transpilePackages: ['server'], 
+};
 
 export default nextConfig
