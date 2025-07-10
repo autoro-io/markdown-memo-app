@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import z from 'zod';
-import { MemoService } from '@/services/memo-service';
+import { MemoService } from '@/services/memo/memo-service';
 import { CreateMemoSchema, UpdateMemoSchema } from '@/db/types';
 import { HonoVariables } from '@/index';
 

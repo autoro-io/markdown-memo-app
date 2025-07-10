@@ -1,9 +1,10 @@
 import type { AuthService, User } from "./auth-service.interface";
 
-const mockAdminUser: User = {
-  id: 'mock-admin-user-id',
+// モックですが、サーバー側とは、メタ的に一致するような仕組みです
+const user1: User = {
+  id: 'user1',
   email: 'admin@example.com',
-  name: 'Admin User',
+  name: 'Test User',
 };
 
 export class MockAuthService implements AuthService {
@@ -11,8 +12,8 @@ export class MockAuthService implements AuthService {
   public accessToken: string | null = null;
 
   async signIn(email: string): Promise<{ error?: string }> {
-    if (email === mockAdminUser.email) {
-      this.user = mockAdminUser;
+    if (email === user1.email) {
+      this.user = user1;
       this.accessToken = 'mock-access-token';
       this.saveUser(this.user);
       this.saveAccessToken(this.accessToken);

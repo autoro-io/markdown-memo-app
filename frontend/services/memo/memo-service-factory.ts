@@ -1,6 +1,6 @@
-import { MemoService } from "./memo-service";
-import { StubMemoService } from "./stub-memo-service";
-import { ServerMemoService } from "./server-memo-service";
+import { MemoService } from "@/services/memo/memo-service";
+import { StubMemoService } from "@/services/memo/stub-memo-service";
+import { ServerMemoService } from "@/services/memo/server-memo-service";
 
 export class MemoServiceFactory {
   static create(): MemoService {

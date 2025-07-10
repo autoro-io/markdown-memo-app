@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useState, useEffect } from "react";
 import { Memo } from "@/type/type";
-import { memoService } from "@/services/memo-service-factory";
+import { memoService } from "@/services/memo/memo-service-factory";
 
 interface MemosContextType {
   memos: Memo[];

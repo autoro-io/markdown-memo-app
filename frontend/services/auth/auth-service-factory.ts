@@ -1,7 +1,7 @@
 import { AuthService } from "./auth-service.interface";
 import { MockAuthService } from "./mock-auth-service";
 import { SupabaseAuthService } from "./supabase-auth-service";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase";
 
 export class AuthServiceFactory {
   static create(): AuthService {
@@ -16,4 +16,4 @@ export class AuthServiceFactory {
   }
 }
 
-export type AuthServiceType = "supabase" | "mock";
+export const auth: AuthService = AuthServiceFactory.create();
