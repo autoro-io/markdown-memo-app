@@ -9,7 +9,7 @@
     "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
     "db:push": "drizzle-kit push --config drizzle.config.ts",
     "db:ui": "drizzle-kit studio --config drizzle.config.ts --verbose",
-    "db:seed": "tsx ./scripts/sampleSeed.ts",
+    "setUpInitial": "tsx ./scripts/setup.ts",
     "dev": "tsx --watch ./src/index.ts"
   },
   "type": "module",
