@@ -19,13 +19,25 @@ export default function MarkdownMemoApp() {
   const { id } = useParams<{ id: string }>();
 
   const [isPreviewMode, setIsPreviewMode] = useState(true)
+  const [localContent, setLocalContent] = useState("")
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const scrollPositionRef = useRef(0)
+  const cursorPositionRef = useRef(0)
+  const isUpdatingRef = useRef(false)
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // URL パラメータに基づいて選択されたメモを取得
   const selectedMemo = memos.find((m) => m.id === id) || null;
+  
+  // selectedMemoが変更されたときにlocalContentを同期
+  useEffect(() => {
+    if (selectedMemo && !isUpdatingRef.current) {
+      setLocalContent(selectedMemo.content)
+    }
+  }, [selectedMemo?.content, selectedMemo?.id])
+
   const handleNewMemo = () => {
     const newMemo: Memo = {
       id: Date.now().toString(),
@@ -36,11 +48,55 @@ export default function MarkdownMemoApp() {
   }
 
   const handleContentChange = (content: string) => {
+    // ローカル状態を即座に更新
+    setLocalContent(content)
+    
+    // カーソル位置を保存
+    if (textareaRef.current) {
+      cursorPositionRef.current = textareaRef.current.selectionStart
+    }
+    
     if (selectedMemo?.id) {
-      const title = content.split("\n")[0].replace(/^#+ /, "") || "新しいメモ"
-      updateMemo(selectedMemo.id, { content, title })
+      // 既存のタイマーをクリア
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current)
+      }
+      
+      // デバウンスを使用してサーバーへの更新を遅延
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (selectedMemo?.id) {
+          isUpdatingRef.current = true
+          const title = content.split("\n")[0].replace(/^#+ /, "") || "新しいメモ"
+          
+          updateMemo(selectedMemo.id, { content, title }).finally(() => {
+            isUpdatingRef.current = false
+          })
+        }
+      }, 300) // 300ms のデバウンス
     }
   }
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // カーソル位置を復元するエフェクト
+  useEffect(() => {
+    if (textareaRef.current && !isPreviewMode) {
+      const textarea = textareaRef.current
+      const position = cursorPositionRef.current
+      
+      // 次のフレームでカーソル位置を復元
+      requestAnimationFrame(() => {
+        textarea.setSelectionRange(position, position)
+      })
+    }
+  }, [localContent, isPreviewMode])
 
   const handleModeToggle = () => {
     // 現在のスクロール位置を保存
@@ -100,7 +156,7 @@ export default function MarkdownMemoApp() {
               {!isPreviewMode ? (
                 <Textarea
                   ref={textareaRef}
-                  value={selectedMemo.content}
+                  value={localContent}
                   onChange={(e) => handleContentChange(e.target.value)}
                   placeholder="メモを入力してください..."
                   className="w-full h-full resize-none border-none shadow-none text-sm leading-relaxed p-4 focus-visible:ring-0 overflow-y-auto"
@@ -182,7 +238,7 @@ export default function MarkdownMemoApp() {
                       hr: () => <hr className="border-gray-300 my-2" />,
                     }}
                   >
-                    {selectedMemo.content}
+                    {localContent}
                   </ReactMarkdown>
                 </div>
               )
