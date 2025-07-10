@@ -6,9 +6,9 @@ import { supabase } from "../../lib/supabase";
 export class AuthServiceFactory {
   static create(): AuthService {
     // 環境変数やフラグに基づいてサービスを選択
-    const useStub = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_STUB === 'true';
+    const useMock = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true';
     
-    if (useStub) {
+    if (useMock) {
       return new MockAuthService();
     } else {
       return new SupabaseAuthService(supabase);

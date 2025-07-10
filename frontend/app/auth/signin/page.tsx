@@ -1,17 +1,23 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useAuth } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function SignInPage() {
   const { signIn, loading } = useAuth()
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true') {
+      setEmail('admin@example.com')
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -31,20 +37,20 @@ export default function SignInPage() {
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">ログイン</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account. A magic link will be sent to you.
+            アカウントにログインするには、以下にメールアドレスを入力してください。マジックリンクが送信されます。
           </CardDescription>
         </CardHeader>
         <CardContent>
           {submitted ? (
             <div className="text-center text-green-600">
-              <p>Please check your email for the login link.</p>
+              <p>ログイン用のリンクを記載したメールを確認してください。</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">メールアドレス</Label>
                 <Input
                   id="email"
                   type="email"
@@ -59,7 +65,7 @@ export default function SignInPage() {
                 <p className="text-red-500 text-sm">{error}</p>
               )}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending..." : "Sign In with Email"}
+                {loading ? '送信中...' : 'メールでサインイン'}
               </Button>
             </form>
           )}
@@ -68,3 +74,4 @@ export default function SignInPage() {
     </div>
   )
 }
+
