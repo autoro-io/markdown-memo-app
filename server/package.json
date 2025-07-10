@@ -1,0 +1,40 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
+    "db:push": "drizzle-kit push --config drizzle.config.ts",
+    "db:ui": "drizzle-kit studio --config drizzle.config.ts --verbose",
+    "db:seed": "tsx ./scripts/sampleSeed.ts",
+    "dev": "tsx --watch ./src/index.ts"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@hono/node-server": "^1.14.1",
+    "@types/node": "^22.15.3",
+    "drizzle-kit": "^0.31.0",
+    "testcontainers": "^11.2.1",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.4.1",
+    "@libsql/client": "^0.15.9",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.43.1",
+    "drizzle-zod": "^0.7.1",
+    "hono": "4.7.0",
+    "inversify": "7.0.0-alpha.5",
+    "libsql": "^0.5.13",
+    "reflect-metadata": "^0.2.2",
+    "zod": "^3.24.4"
+  }
+}
