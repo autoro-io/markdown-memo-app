@@ -7,6 +7,7 @@ type AuthContextType = {
   loading: boolean
   accessToken: string | null
   signIn: (email: string) => Promise<{ error?: string }>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,11 +36,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     auth.getCurrentUser().then((user) => {
       if (!user) {
         setLoading(false)
-        router.replace("/login")
+        router.replace("/auth/signin")
         return
       }
       setUser(user)
-      setAccessToken(auth.accessToken)      
+      setAccessToken(auth.accessToken)
       const { unsubscribe } = auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null)
         setAccessToken(session?.access_token ?? null)
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch((error) => {
       console.error("Error fetching current user:", error)
       setLoading(false)
-      router.replace("/login")
+      router.replace("/auth/signin")
       return null
     })
 
@@ -64,8 +65,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
+  const signOut = async () => {
+    await auth.signOut();
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, accessToken, signIn }}>
+    <AuthContext.Provider value={{ user, loading, accessToken, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

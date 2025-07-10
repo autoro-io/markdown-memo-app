@@ -3,12 +3,13 @@ import './globals.css'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState, useMemo } from 'react'
-import { Search, Trash2 } from "lucide-react"
+import { Search, Trash2, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter, useParams } from 'next/navigation';
 import { Memo } from '@/type/type'
 import { useMemos } from '@/hooks/use-memos'
 import { MemosProvider } from '@/contexts/MemosContext'
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 
 const formatDate = (date: Date) => {
   const today = new Date()
@@ -46,6 +47,7 @@ function AppContent({
   const router = useRouter()
   const params = useParams()
   const { memos, setMemos, deleteMemo } = useMemos()
+  const { signOut } = useAuth()
   
   const [selectedMemos, setSelectedMemos] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState("")
@@ -135,6 +137,10 @@ function AppContent({
     setSelectedMemos(new Set());
   }
 
+  const handleSignOut = async () => {
+    await signOut()
+  }
+
   return (
     <div className="flex h-screen bg-white text-gray-900 overflow-hidden">
       {/* Left Sidebar */}
@@ -217,6 +223,19 @@ function AppContent({
             </div>
           </div>
         )}
+
+        {/* Sign Out Button */}
+        <div className="p-3 border-t border-gray-200 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-start text-sm text-gray-500 hover:text-gray-700"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            サインアウト
+          </Button>
+        </div>
       </div>
 
       {/* Right Content */}
@@ -236,9 +255,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <MemosProvider>
-          <AppContent>{children}</AppContent>
-        </MemosProvider>
+        <AuthProvider>
+          <MemosProvider>
+            <AppContent>{children}</AppContent>
+          </MemosProvider>
+        </AuthProvider>
       </body>
     </html>
   )
