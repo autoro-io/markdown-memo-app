@@ -1,22 +1,23 @@
 import { Memo } from "@/type/type";
-import { client } from "@/lib/client";
+import { appClient } from "@/lib/api-client";
 import { MemoService } from "./memo-service";
+import { SelectMemoInput } from "../../../server/src/db/types";
 
 export class ServerMemoService extends MemoService {
   async getMemos(): Promise<Memo[]> {
     try {
-      const response = await client.memos.$get();
+      const response = await appClient.memos.$get();
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data: SelectMemoInput[] = await response.json();
 
       // サーバーサイドのレスポンスをフロントエンドのMemo型に変換
       return data.map((memo) => ({
         id: memo.id,
-        title: memo.title || memo.content.substring(0, 50), // titleがない場合はcontentの最初の50文字を使用
+        title: memo.content.substring(0, 50),
         content: memo.content,
         createdAt: memo.createdAt ? new Date(memo.createdAt) : undefined,
         updatedAt: memo.updatedAt ? new Date(memo.updatedAt) : undefined,
@@ -29,7 +30,7 @@ export class ServerMemoService extends MemoService {
 
   async updateMemo(id: string, updates: Partial<Memo>): Promise<Memo> {
     try {
-      const response = await client.memos[':id'].$patch({
+      const response = await appClient.memos[':id'].$patch({
         param: { id },
         json: {
           content: updates.content,
@@ -40,12 +41,12 @@ export class ServerMemoService extends MemoService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data: SelectMemoInput = await response.json();
       
       // サーバーサイドのレスポンスをフロントエンドのMemo型に変換
       return {
         id: data.id,
-        title: data.title || data.content.substring(0, 50),
+        title: data.content.substring(0, 50),
         content: data.content,
         createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
@@ -58,7 +59,7 @@ export class ServerMemoService extends MemoService {
 
   async createMemo(memo: Omit<Memo, 'id'>): Promise<Memo> {
     try {
-      const response = await client.memos.$post({
+      const response = await appClient.memos.$post({
         json: {
           content: memo.content,
         },
@@ -68,12 +69,12 @@ export class ServerMemoService extends MemoService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data: SelectMemoInput = await response.json();
       
       // サーバーサイドのレスポンスをフロントエンドのMemo型に変換
       return {
         id: data.id,
-        title: data.title || data.content.substring(0, 50),
+        title: data.content.substring(0, 50),
         content: data.content,
         createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
@@ -86,7 +87,7 @@ export class ServerMemoService extends MemoService {
 
   async deleteMemo(id: string): Promise<void> {
     try {
-      const response = await client.memos[':id'].$delete({
+      const response = await appClient.memos[':id'].$delete({
         param: { id },
       });
       
