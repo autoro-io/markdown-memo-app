@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, memo } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Search, Trash2, PenSquare, Eye, Edit3 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -19,14 +18,15 @@ export default function MarkdownMemoApp() {
   const { memos, setMemos, loading, updateMemo } = useMemos();
   const { id } = useParams<{ id: string }>();
 
-  const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [isPreviewMode, setIsPreviewMode] = useState(true)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const scrollPositionRef = useRef(0)
 
   // URL パラメータに基づいて選択されたメモを取得
-  const selectedMemo = memos.find((m) => m.id === id) || null;  const handleNewMemo = () => {
+  const selectedMemo = memos.find((m) => m.id === id) || null;
+  const handleNewMemo = () => {
     const newMemo: Memo = {
       id: Date.now().toString(),
       title: "新しいメモ",

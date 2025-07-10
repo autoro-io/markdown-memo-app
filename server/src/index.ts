@@ -4,7 +4,6 @@ dotenv.config();
 import { Hono, Next } from "hono";
 import { cors } from "hono/cors";
 import { serve } from '@hono/node-server';
-
 import { logger } from 'hono/logger';
 import { container } from './inversify.config';
 import { TYPES } from './types';

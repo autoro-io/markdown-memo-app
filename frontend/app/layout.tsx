@@ -2,7 +2,7 @@
 import './globals.css'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { Search, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter, useParams } from 'next/navigation';
@@ -45,13 +45,22 @@ export default function RootLayout({
 }>) {
   const router = useRouter()
   const params = useParams()
-  const { memos, setMemos } = useMemos()
+  const { memos, setMemos, deleteMemo } = useMemos()
   
   const [selectedMemos, setSelectedMemos] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState("")
   const [isShiftPressed, setIsShiftPressed] = useState(false)
 
   const currentMemoId = params.id as string
+  
+  // 現在表示中のメモを選択状態に含める
+  const effectiveSelectedMemos = useMemo(() => {
+    const selected = new Set(selectedMemos)
+    if (currentMemoId) {
+      selected.add(currentMemoId)
+    }
+    return selected
+  }, [selectedMemos, currentMemoId])
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,6 +100,7 @@ export default function RootLayout({
   const handleMemoSelect = (memo: Memo) => {
     if (!memo.id) return;
 
+    // Shiftキーが押されている場合は選択/選択解除
     if (isShiftPressed) {
       const newSelected = new Set(selectedMemos)
       if (newSelected.has(memo.id)) {
@@ -99,17 +109,37 @@ export default function RootLayout({
         newSelected.add(memo.id)
       }
       setSelectedMemos(newSelected)
+      console.log('Selected memos:', Array.from(newSelected)) // デバッグ用
     } else {
+      // 通常クリックの場合は詳細画面に遷移
       setSelectedMemos(new Set())
       router.push(`/memos/${memo.id}`)
     }
   }
 
-  const handleDeleteSelected = () => {
-    if (selectedMemos.size > 0) {
-      setMemos(memos.filter((memo) => !selectedMemos.has(memo.id!)))
-      setSelectedMemos(new Set())
+  const handleDeleteSelected = async () => {
+    if (effectiveSelectedMemos.size > 0) {
+      try {
+        // 選択されたメモを並行して削除
+        const deletePromises = Array.from(effectiveSelectedMemos).map(memoId => deleteMemo(memoId));
+        await Promise.all(deletePromises);
+        
+        // 選択状態をクリア
+        setSelectedMemos(new Set());
+        
+        // 現在表示中のメモが削除された場合、トップページに戻る
+        if (currentMemoId && effectiveSelectedMemos.has(currentMemoId)) {
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Failed to delete selected memos:', error);
+        // エラーハンドリング - 必要に応じてユーザーに通知
+      }
     }
+  }
+
+  const handleClearSelection = () => {
+    setSelectedMemos(new Set());
   }
 
   return (
@@ -129,15 +159,36 @@ export default function RootLayout({
                   className="border-none shadow-none text-xs h-7 px-0 focus-visible:ring-0"
                 />
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDeleteSelected}
-                disabled={selectedMemos.size === 0}
-                className="h-7 w-7 p-0 hover:bg-gray-100"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                {effectiveSelectedMemos.size > 1 && (
+                  <>
+                    <span className="text-xs text-blue-600 font-medium">
+                      {effectiveSelectedMemos.size}件選択
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearSelection}
+                      className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      クリア
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  disabled={effectiveSelectedMemos.size === 0}
+                  className={cn(
+                    "h-7 w-7 p-0 hover:bg-gray-100",
+                    effectiveSelectedMemos.size > 0 ? "text-red-600 hover:text-red-700 hover:bg-red-50" : "text-gray-400"
+                  )}
+                  title={effectiveSelectedMemos.size > 0 ? `${effectiveSelectedMemos.size}件のメモを削除` : "削除するメモを選択してください"}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Memo List */}
@@ -150,9 +201,8 @@ export default function RootLayout({
                       key={memo.id}
                       onClick={() => handleMemoSelect(memo)}
                       className={cn(
-                        "px-3 py-2 cursor-pointer border-b border-gray-100 hover:bg-gray-50",
-                        currentMemoId === memo.id && !selectedMemos.has(memo.id!) && "bg-blue-50 border-blue-200",
-                        selectedMemos.has(memo.id!) && "bg-blue-100 border-blue-300",
+                        "px-3 py-2 cursor-pointer border-b border-gray-100",
+                        effectiveSelectedMemos.has(memo.id!) && "bg-blue-100 border-blue-300",
                       )}
                     >
                       <div className="text-xs font-bold text-gray-900 mb-1 truncate">{memo.title}</div>
@@ -171,7 +221,9 @@ export default function RootLayout({
             {/* Shift Selection Hint */}
             {isShiftPressed && (
               <div className="px-3 py-2 bg-blue-50 border-t border-blue-200 flex-shrink-0">
-                <div className="text-xs text-blue-600">Shiftキーを押しながらクリックで複数選択</div>
+                <div className="text-xs text-blue-600">
+                  Shiftキーを押しながらクリックで複数選択
+                </div>
               </div>
             )}
           </div>

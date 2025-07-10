@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@hono/zod-validator':
         specifier: ^0.4.1
-        version: 0.4.3(hono@4.7.0)(zod@3.25.23)
+        version: 0.4.3(hono@4.8.4)(zod@3.25.23)
       '@libsql/client':
         specifier: ^0.15.9
         version: 0.15.9
@@ -24,8 +24,8 @@ importers:
         specifier: ^0.7.1
         version: 0.7.1(drizzle-orm@0.43.1(@libsql/client@0.15.9)(@opentelemetry/api@1.9.0)(@types/pg@8.15.2)(bun-types@1.2.14)(pg@8.16.0)(postgres@3.4.7))(zod@3.25.23)
       hono:
-        specifier: 4.7.0
-        version: 4.7.0
+        specifier: 4.8.4
+        version: 4.8.4
       inversify:
         specifier: 7.0.0-alpha.5
         version: 7.0.0-alpha.5(reflect-metadata@0.2.2)
@@ -44,7 +44,7 @@ importers:
     devDependencies:
       '@hono/node-server':
         specifier: ^1.14.1
-        version: 1.14.2(hono@4.7.0)
+        version: 1.14.2(hono@4.8.4)
       '@types/node':
         specifier: ^22.15.3
         version: 22.15.21
@@ -1079,8 +1079,8 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  hono@4.7.0:
-    resolution: {integrity: sha512-hV97aIR4WYbG30k234sD9B3VNr1ZWdQRmrVF76LKFlmI7O9Yo70mG9+mFwyQ6Sjrz4wH71GfnBxv6CPjcx3QNw==}
+  hono@4.8.4:
+    resolution: {integrity: sha512-KOIBp1+iUs0HrKztM4EHiB2UtzZDTBihDtOF5K6+WaJjCPeaW4Q92R8j63jOhvJI5+tZSMuKD9REVEXXY9illg==}
     engines: {node: '>=16.9.0'}
 
   ieee754@1.2.1:
@@ -1844,13 +1844,13 @@ snapshots:
       protobufjs: 7.4.0
       yargs: 17.7.2
 
-  '@hono/node-server@1.14.2(hono@4.7.0)':
+  '@hono/node-server@1.14.2(hono@4.8.4)':
     dependencies:
-      hono: 4.7.0
+      hono: 4.8.4
 
-  '@hono/zod-validator@0.4.3(hono@4.7.0)(zod@3.25.23)':
+  '@hono/zod-validator@0.4.3(hono@4.8.4)(zod@3.25.23)':
     dependencies:
-      hono: 4.7.0
+      hono: 4.8.4
       zod: 3.25.23
 
   '@inversifyjs/common@1.5.0': {}
@@ -2491,7 +2491,7 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  hono@4.7.0: {}
+  hono@4.8.4: {}
 
   ieee754@1.2.1: {}
 
