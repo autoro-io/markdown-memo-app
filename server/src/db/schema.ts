@@ -2,7 +2,8 @@ import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
-  id: integer('id').primaryKey(),
+  // UUID が理想だが、SQLite では UUID を直接サポートしていないため、テキスト型で代用
+  id: text('id').primaryKey().$default(() => sql`(lower(hex(randomblob(16))))`),
   name: text('name').notNull().unique(),
   createdAt: integer('created_at', {
     mode: 'timestamp',
@@ -13,8 +14,9 @@ export const users = sqliteTable('users', {
 });
 
 export const memos = sqliteTable('memos', {
-  id: integer('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id, {
+  // UUID が理想だが、SQLite では UUID を直接サポートしていないため、テキスト型で代用
+  id: text('id').primaryKey().$default(() => sql`(lower(hex(randomblob(16))))`),
+  userId: text('user_id').references(() => users.id, {
     onDelete: 'cascade',
   }),
   content: text('content').notNull().default(""),
