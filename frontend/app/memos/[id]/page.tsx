@@ -16,23 +16,17 @@ import { useParams } from "next/navigation"
 
 export default function MarkdownMemoApp() {
 
-  const { memos, setMemos, loading } = useMemos();
+  const { memos, setMemos, loading, updateMemo } = useMemos();
   const { id } = useParams<{ id: string }>();
 
-  const [selectedMemo, setSelectedMemo] = useState<Memo | null>(memos[0])
   const [isPreviewMode, setIsPreviewMode] = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const scrollPositionRef = useRef(0)
 
-  useEffect(() => {
-    if (memos.length > 0) {
-      setSelectedMemo(memos[0])
-    }
-  }, [memos, selectedMemo])
-
-  const handleNewMemo = () => {
+  // URL パラメータに基づいて選択されたメモを取得
+  const selectedMemo = memos.find((m) => m.id === id) || null;  const handleNewMemo = () => {
     const newMemo: Memo = {
       id: Date.now().toString(),
       title: "新しいメモ",
@@ -42,13 +36,9 @@ export default function MarkdownMemoApp() {
   }
 
   const handleContentChange = (content: string) => {
-    if (selectedMemo) {
-      const updatedMemo = {
-        ...selectedMemo,
-        content,
-        title: content.split("\n")[0].replace(/^#+ /, "") || "新しいメモ",
-      }
-      setSelectedMemo(updatedMemo)
+    if (selectedMemo?.id) {
+      const title = content.split("\n")[0].replace(/^#+ /, "") || "新しいメモ"
+      updateMemo(selectedMemo.id, { content, title })
     }
   }
 

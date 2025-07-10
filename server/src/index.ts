@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import dotenv from 'dotenv';
+dotenv.config();
 import { Hono, Next } from "hono";
 import { cors } from "hono/cors";
 import { serve } from '@hono/node-server';
@@ -60,11 +62,12 @@ export const app = new Hono<{ Variables: HonoVariables }>()
   .route('/memos', createMemoRoute(container.get<MemoService>(TYPES.MemoService)))
 
 export type AppType = typeof app;
-const port = parseInt(process.env.PORT ?? "", 10) || 3000;
+const port = parseInt(process.env.PORT ?? "", 10) || 5432;
 
 const server = serve({
   fetch: app.fetch,
   port: port,
 });
+
 console.log(`Server is running on http://localhost:${port}`);
 server.setTimeout(60 * 1000); // Set timeout to 60 seconds

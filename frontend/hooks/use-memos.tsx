@@ -16,5 +16,13 @@ export const useMemos = () => {
     fetchMemos();
   }, []);
 
-  return { memos, setMemos, loading };
+  const updateMemo = (id: string, updates: Partial<Memo>) => {
+    setMemos(prevMemos => 
+      prevMemos.map(memo => 
+        memo.id === id ? { ...memo, ...updates } : memo
+      )
+    );
+  };
+
+  return { memos, setMemos, loading, updateMemo };
 };
