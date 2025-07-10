@@ -10,7 +10,7 @@ export const users = sqliteTable('users', {
   }).default(sql`(unixepoch())`).notNull(),
   updatedAt: integer('updated_at', {
     mode: 'timestamp',
-  }).default(sql`(unixepoch())`).notNull().$onUpdate(() => sql`(unixepoch())`),
+  }).default(sql`(unixepoch())`).notNull().$onUpdate(() => new Date()),
 });
 
 export const memos = sqliteTable('memos', {
@@ -25,6 +25,6 @@ export const memos = sqliteTable('memos', {
   }).default(sql`(unixepoch())`).notNull(),
   updatedAt: integer('updated_at', {
     mode: 'timestamp',
-  }).default(sql`(unixepoch())`).notNull().$onUpdate(() => sql`(unixepoch())`),
+  }).default(sql`(unixepoch())`).notNull().$onUpdate(() => new Date()),
 });
 

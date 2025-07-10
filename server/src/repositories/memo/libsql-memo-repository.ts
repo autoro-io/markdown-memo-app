@@ -4,11 +4,12 @@ import { CreateMemoInput, UpdateMemoInput, SelectMemoInput } from '../../db/type
 import { inject, injectable } from 'inversify';
 import { MemoRepository } from './memo-repository.interface';
 import { eq } from 'drizzle-orm';
+import { TYPES } from '@/types';
 
 @injectable()
 export class LibsqlMemoRepository implements MemoRepository {
   constructor(
-    @inject('db') private db: LibSQLDatabase
+    @inject(TYPES.LibSQLDatabase) private db: LibSQLDatabase
   ) {}
 
   async createMemo(data: CreateMemoInput): Promise<SelectMemoInput> {
@@ -18,6 +19,9 @@ export class LibsqlMemoRepository implements MemoRepository {
 
   async updateMemo(memoId: string, data: UpdateMemoInput): Promise<SelectMemoInput> {
     const [updatedMemo] = await this.db.update(memos).set(data).where(eq(memos.id, memoId)).returning();
+    if (!updatedMemo) {
+      throw new Error("Memo not found");
+    }
     return updatedMemo;
   }
 
@@ -33,5 +37,9 @@ export class LibsqlMemoRepository implements MemoRepository {
   async getMemosByUserId(userId: string): Promise<SelectMemoInput[] | null> {
     const userMemos = await this.db.select().from(memos).where(eq(memos.userId, userId));
     return userMemos;
+  }
+
+  async getAllMemos(): Promise<SelectMemoInput[]> {
+    return await this.db.select().from(memos);
   }
 }
