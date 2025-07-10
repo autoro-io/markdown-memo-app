@@ -32,33 +32,20 @@ export default function MarkdownMemoApp() {
   // URL パラメータに基づいて選択されたメモを取得
   const selectedMemo = memos.find((m) => m.id === id) || null;
   
-  // selectedMemoが変更されたときにlocalContentを同期
+  // selectedMemoの内容が変更されたときにローカルのコンテンツを同期
   useEffect(() => {
     if (selectedMemo && !isUpdatingRef.current) {
-      setLocalContent(selectedMemo.content || "")
-      
-      // 新しいメモ（空のコンテンツ）の場合は編集モードに切り替え
-      if (selectedMemo.content === "") {
-        setIsPreviewMode(false);
-      }
+      setLocalContent(selectedMemo.content || "");
     }
-  }, [selectedMemo?.content, selectedMemo?.id])
+  }, [selectedMemo?.content]);
 
-  // 新しいメモページに遷移した時にローカル状態をリセット
+  // 別のメモが選択されたときに表示モードを初期化
   useEffect(() => {
-    if (selectedMemo && selectedMemo.content === "" && !isUpdatingRef.current) {
-      setLocalContent("")
-      // 新しいメモの場合、編集モードに切り替えてフォーカス
-      setIsPreviewMode(false);
-      
-      // フォーカスを設定
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-        }
-      }, 100);
+    if (selectedMemo) {
+      // 新しいメモ（空のコンテンツ）の場合は編集モードに、それ以外はプレビューモードに設定
+      setIsPreviewMode(selectedMemo.content !== "");
     }
-  }, [selectedMemo?.id, selectedMemo?.content])
+  }, [selectedMemo?.id]);
 
   const handleNewMemo = async () => {
     try {
@@ -69,19 +56,7 @@ export default function MarkdownMemoApp() {
       
       // 新しいメモのページに遷移
       if (newMemo.id) {
-        // 編集モードに切り替え
-        setIsPreviewMode(false);
-        
-        // ページ遷移
         router.push(`/memos/${newMemo.id}`);
-        
-        // ローカル状態を初期化
-        setLocalContent("");
-        
-        // ページをリロードして確実にメモ一覧を更新
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
       }
     } catch (error) {
       console.error('Failed to create new memo:', error);

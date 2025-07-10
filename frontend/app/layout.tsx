@@ -183,7 +183,7 @@ function AppContent({
         </div>
 
         {/* Memo List */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className={cn("flex-1 overflow-y-auto min-h-0", isShiftPressed && "select-none")}>
           {Object.entries(groupedMemos).map(([date, memos]) => (
             <div key={date}>
               <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50">{date}</div>
