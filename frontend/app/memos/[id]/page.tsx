@@ -11,12 +11,13 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { useMemos } from "@/hooks/use-memos"
 import { Memo } from "@/type/type"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 
 export default function MarkdownMemoApp() {
 
-  const { memos, setMemos, loading, updateMemo } = useMemos();
+  const { memos, setMemos, loading, updateMemo, createMemo } = useMemos();
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
 
   const [isPreviewMode, setIsPreviewMode] = useState(true)
   const [localContent, setLocalContent] = useState("")
@@ -34,17 +35,39 @@ export default function MarkdownMemoApp() {
   // selectedMemoが変更されたときにlocalContentを同期
   useEffect(() => {
     if (selectedMemo && !isUpdatingRef.current) {
-      setLocalContent(selectedMemo.content)
+      setLocalContent(selectedMemo.content || "")
     }
   }, [selectedMemo?.content, selectedMemo?.id])
 
-  const handleNewMemo = () => {
-    const newMemo: Memo = {
-      id: Date.now().toString(),
-      title: "新しいメモ",
-      content: "",
+  // 新しいメモページに遷移した時にローカル状態をリセット
+  useEffect(() => {
+    if (selectedMemo && selectedMemo.content === "" && !isUpdatingRef.current) {
+      setLocalContent("")
+      // 新しいメモの場合、編集モードに切り替えてフォーカス
+      if (!isPreviewMode && textareaRef.current) {
+        setTimeout(() => {
+          textareaRef.current?.focus()
+        }, 100)
+      }
     }
-    setMemos([...memos, newMemo])
+  }, [selectedMemo?.id, isPreviewMode])
+
+  const handleNewMemo = async () => {
+    try {
+      const newMemo = await createMemo({
+        title: "新しいメモ",
+        content: "",
+      });
+      
+      // 新しいメモのページに遷移
+      if (newMemo.id) {
+        // 編集モードに切り替え
+        setIsPreviewMode(false);
+        router.push(`/memos/${newMemo.id}`);
+      }
+    } catch (error) {
+      console.error('Failed to create new memo:', error);
+    }
   }
 
   const handleContentChange = (content: string) => {
