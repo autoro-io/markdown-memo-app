@@ -125,7 +125,15 @@ function AppContent({
         setSelectedMemos(new Set());
         
         if (currentMemoId && effectiveSelectedMemos.has(currentMemoId)) {
-          router.push('/');
+          // 削除されたメモの中に現在表示中のメモが含まれている場合
+          const remainingMemos = memos.filter(memo => !effectiveSelectedMemos.has(memo.id!));
+          if (remainingMemos.length > 0) {
+            // 残っているメモの中で最新のメモにリダイレクト
+            router.push(`/memos/${remainingMemos[0].id}`);
+          } else {
+            // 全てのメモが削除された場合
+            router.push('/memos');
+          }
         }
       } catch (error) {
         console.error('Failed to delete selected memos:', error);
