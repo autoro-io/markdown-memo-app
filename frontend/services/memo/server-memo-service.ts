@@ -7,6 +7,8 @@ export class ServerMemoService extends MemoService {
   async getMemos(): Promise<Memo[]> {
     try {
       const response = await appClient.memos.$get();
+
+      console.log('Response from server:', response);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
