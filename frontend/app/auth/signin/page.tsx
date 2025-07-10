@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -44,8 +45,13 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent>
           {submitted ? (
-            <div className="text-center text-green-600">
-              <p>ログイン用のリンクを記載したメールを確認してください。</p>
+            <div className="text-center space-y-4">
+              <p className="text-green-600">ログイン用のリンクを記載したメールを確認してください。</p>
+              {process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true' && (
+                <Link href="/memos" className="inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                  メモ一覧へ
+                </Link>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="grid gap-4">
@@ -74,4 +80,5 @@ export default function SignInPage() {
     </div>
   )
 }
+
 

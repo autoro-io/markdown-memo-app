@@ -1,0 +1,1 @@
+CREATE INDEX `user_updated_at_idx` ON `memos` (`user_id`,`updated_at`);

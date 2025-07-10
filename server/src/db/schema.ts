@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
   // UUID が理想だが、SQLite では UUID を直接サポートしていないため、テキスト型で代用
@@ -26,5 +26,7 @@ export const memos = sqliteTable('memos', {
   updatedAt: integer('updated_at', {
     mode: 'timestamp',
   }).default(sql`(unixepoch())`).notNull().$onUpdate(() => new Date()),
-});
+}, (table) => ({
+  userUpdatedAtIdx: index('user_updated_at_idx').on(table.userId, table.updatedAt),
+}));
 

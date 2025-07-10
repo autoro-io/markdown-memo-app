@@ -3,7 +3,7 @@ import { memos } from '../../db/schema';
 import { CreateMemoInput, UpdateMemoInput, SelectMemoInput } from '../../db/types';
 import { inject, injectable } from 'inversify';
 import { MemoRepository } from './memo-repository.interface';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { TYPES } from '@/types';
 
 @injectable()
@@ -35,7 +35,7 @@ export class LibsqlMemoRepository implements MemoRepository {
   }
 
   async getMemosByUserId(userId: string): Promise<SelectMemoInput[] | null> {
-    const userMemos = await this.db.select().from(memos).where(eq(memos.userId, userId));
+    const userMemos = await this.db.select().from(memos).where(eq(memos.userId, userId)).orderBy(desc(memos.updatedAt));
     return userMemos;
   }
 
