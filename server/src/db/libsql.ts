@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/libsql/node';
 
-const db = drizzle({
+export const db = drizzle({
   connection: 'file:./libsql.db',
 });
