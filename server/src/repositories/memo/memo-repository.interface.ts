@@ -1,9 +1,9 @@
 import { CreateMemoInput, UpdateMemoInput, SelectMemoInput } from "../../db/types";
 
 export interface MemoRepository {
-  createMemo(data: CreateMemoInput): Promise<number>;
-  updateMemo(memoId: number, data: UpdateMemoInput): Promise<void>;
-  deleteMemo(memoId: number): Promise<void>;
-  getMemoById(memoId: number): Promise<SelectMemoInput | null>;
-  getMemosByUserId(userId: number): Promise<SelectMemoInput[] | null>;
+  createMemo(data: CreateMemoInput): Promise<SelectMemoInput>;
+  updateMemo(memoId: string, data: UpdateMemoInput): Promise<SelectMemoInput>;
+  deleteMemo(memoId: string): Promise<void>;
+  getMemoById(memoId: string): Promise<SelectMemoInput | null>;
+  getMemosByUserId(userId: string): Promise<SelectMemoInput[] | null>;
 }
