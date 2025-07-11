@@ -16,4 +16,4 @@ $ pnpm db:setup
 $ pnpm dev
 ```
 
-ブラウザで、http://localhost:3000 を開く
+ブラウザで、http://localhost:3000/memos を開く
