@@ -132,7 +132,7 @@ function AppContent({
       setSelectedMemos(newSelected);
       setLastSelectedMemoId(memo.id);
     } else {
-      setSelectedMemos(new Set([memo.id])); // Select only the current memo
+      setSelectedMemos(new Set()); // 複数選択をクリア
       setLastSelectedMemoId(memo.id);
       router.push(`/memos/${memo.id}`);
     }
