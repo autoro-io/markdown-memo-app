@@ -14,6 +14,7 @@ const mockDb = {
   delete: vi.fn().mockReturnThis(),
   select: vi.fn().mockReturnThis(),
   from: vi.fn().mockReturnThis(),
+  orderBy: vi.fn().mockReturnThis(),
 } as unknown as LibSQLDatabase;
 
 describe('LibsqlMemoRepository', () => {
@@ -117,7 +118,9 @@ describe('LibsqlMemoRepository', () => {
     // モックの設定
     vi.spyOn(mockDb, 'select').mockReturnValueOnce({
       from: vi.fn().mockReturnValueOnce({
-        where: vi.fn().mockResolvedValueOnce(expectedMemos),
+        where: vi.fn().mockReturnValueOnce({
+          orderBy: vi.fn().mockResolvedValueOnce(expectedMemos),
+        }),
       }),
     } as any);
 

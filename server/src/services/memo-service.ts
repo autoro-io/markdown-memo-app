@@ -13,19 +13,31 @@ export class MemoService {
     return this.memoRepository.createMemo(data);
   }
 
-  async getMemoById(memoId: string) {
-    return this.memoRepository.getMemoById(memoId);
+  async getMemoByIdAndUserId(memoId: string, userId: string) {
+    const memo = await this.memoRepository.getMemoById(memoId);
+    if (!memo || memo.userId !== userId) {
+      return null;
+    }
+    return memo;
   }
 
   async getMemosByUserId(userId: string) {
     return this.memoRepository.getMemosByUserId(userId);
   }
 
-  async updateMemo(memoId: string, data: UpdateMemoInput) {
+  async updateMemo(memoId: string, data: UpdateMemoInput, userId: string) {
+    const memo = await this.memoRepository.getMemoById(memoId);
+    if (!memo || memo.userId !== userId) {
+      return null;
+    }
     return this.memoRepository.updateMemo(memoId, data);
   }
 
-  async deleteMemo(memoId: string) {
+  async deleteMemo(memoId: string, userId: string) {
+    const memo = await this.memoRepository.getMemoById(memoId);
+    if (!memo || memo.userId !== userId) {
+      return null;
+    }
     return this.memoRepository.deleteMemo(memoId);
   }
 }

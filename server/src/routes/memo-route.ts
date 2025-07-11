@@ -27,8 +27,12 @@ export const createMemoRoute = (memoService: MemoService) => {
     zValidator('param', ParamIdSchema),
     async (c) => {
       const { id } = c.req.valid('param');
-      const memo = await memoService.getMemoById(id);
-      if (!memo) return c.json({ error: 'Memo not found' }, 404);
+      const userId = c.get('jwtPayload')?.sub;
+      if (!userId) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+      const memo = await memoService.getMemoByIdAndUserId(id, userId);
+      if (!memo) return c.json({ error: 'Memo not found or unauthorized' }, 404);
       return c.json(memo);
     }
   )
@@ -39,6 +43,9 @@ export const createMemoRoute = (memoService: MemoService) => {
     async (c) => {
       const { content } = c.req.valid('json');
       const userId = c.get('jwtPayload')?.sub;
+      if (!userId) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
       const memo = await memoService.createMemo({ content, userId });
       return c.json(memo, 201);
     }
@@ -51,11 +58,13 @@ export const createMemoRoute = (memoService: MemoService) => {
       const { id } = c.req.valid('param');
       const input = c.req.valid('json');
       const userId = c.get('jwtPayload')?.sub;
-      // Ensure the memo belongs to the user
-      if (input.userId && input.userId !== userId) {
-        return c.json({ error: 'Unauthorized to update this memo' }, 403);
+      if (!userId) {
+        return c.json({ error: 'Unauthorized' }, 401);
       }
-      const updated = await memoService.updateMemo(id, input);
+      const updated = await memoService.updateMemo(id, input, userId);
+      if (!updated) {
+        return c.json({ error: 'Memo not found or unauthorized to update' }, 404);
+      }
       return c.json(updated);
     }
   )
@@ -65,14 +74,13 @@ export const createMemoRoute = (memoService: MemoService) => {
     async (c) => {
       const { id } = c.req.valid('param');
       const userId = c.get('jwtPayload')?.sub;
-      // Ensure the memo belongs to the user
-      const memo = await memoService.getMemoById(id);
-      if (!memo) return c.json({ error: 'Memo not found' }, 404);
-      if (memo.userId !== userId) {
-        return c.json({ error: 'Unauthorized to delete this memo' }, 403);
+      if (!userId) {
+        return c.json({ error: 'Unauthorized' }, 401);
       }
-      // Proceed to delete the memo
-      await memoService.deleteMemo(id);
+      const deleted = await memoService.deleteMemo(id, userId);
+      if (!deleted) {
+        return c.json({ error: 'Memo not found or unauthorized to delete' }, 404);
+      }
       return c.json({ status: 'deleted' });
     }
   )
