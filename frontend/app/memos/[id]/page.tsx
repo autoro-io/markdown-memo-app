@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Search, Trash2, PenSquare, Eye, Edit3 } from "lucide-react"
+import { Search, Trash2, PenSquare, Eye, Edit3, Save } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
@@ -12,6 +13,7 @@ import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { useMemos } from "@/hooks/use-memos"
 import { Memo } from "@/type/type"
 import { useParams, useRouter } from "next/navigation"
+import { useNavigationBlocker } from "@/hooks/use-navigation-blocker"
 
 export default function MarkdownMemoApp() {
 
@@ -19,8 +21,23 @@ export default function MarkdownMemoApp() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
+  useNavigationBlocker(
+    () => hasChanges,
+    (nextPath, proceed) => {
+      nextPathRef.current = nextPath;
+      setShowSaveConfirmDialog(true);
+      // proceed関数を保存して、ダイアログが閉じられた後に呼び出す
+      nextPathProceedRef.current = proceed;
+    }
+  );
+
+  const nextPathProceedRef = useRef<(() => void) | null>(null);
+
   const [isPreviewMode, setIsPreviewMode] = useState(true)
   const [localContent, setLocalContent] = useState("")
+  const [hasChanges, setHasChanges] = useState(false)
+  const [showSaveConfirmDialog, setShowSaveConfirmDialog] = useState(false)
+  const nextPathRef = useRef<string | null>(null)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
@@ -36,6 +53,7 @@ export default function MarkdownMemoApp() {
   useEffect(() => {
     if (selectedMemo && !isUpdatingRef.current) {
       setLocalContent(selectedMemo.content || "");
+      setHasChanges(false);
     }
   }, [selectedMemo?.content]);
 
@@ -63,33 +81,32 @@ export default function MarkdownMemoApp() {
     }
   }
 
+  const handleSaveMemo = async () => {
+    if (!selectedMemo?.id || !hasChanges) return;
+
+    try {
+      isUpdatingRef.current = true;
+      const title = localContent.split("\n")[0].replace(/^#+ /, "") || "新しいメモ";
+      await updateMemo(selectedMemo.id, { content: localContent, title });
+      setHasChanges(false);
+    } catch (error) {
+      console.error('Failed to save memo:', error);
+    } finally {
+      isUpdatingRef.current = false;
+    }
+  };
+
   const handleContentChange = (content: string) => {
     // ローカル状態を即座に更新
     setLocalContent(content)
+    setHasChanges(true)
     
     // カーソル位置を保存
     if (textareaRef.current) {
       cursorPositionRef.current = textareaRef.current.selectionStart
     }
     
-    if (selectedMemo?.id) {
-      // 既存のタイマーをクリア
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current)
-      }
-      
-      // デバウンスを使用してサーバーへの更新を遅延
-      debounceTimeoutRef.current = setTimeout(() => {
-        if (selectedMemo?.id) {
-          isUpdatingRef.current = true
-          const title = content.split("\n")[0].replace(/^#+ /, "") || "新しいメモ"
-          
-          updateMemo(selectedMemo.id, { content, title }).finally(() => {
-            isUpdatingRef.current = false
-          })
-        }
-      }, 300) // 300ms のデバウンス
-    }
+    
   }
 
   // 編集モードに切り替わった時にフォーカスを設定
@@ -106,12 +123,22 @@ export default function MarkdownMemoApp() {
 
   // クリーンアップ
   useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        event.preventDefault();
+        event.returnValue = ''; // Chrome requires returnValue to be set
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current)
       }
     }
-  }, [])
+  }, [hasChanges])
 
   // カーソル位置を復元するエフェクト
   useEffect(() => {
@@ -148,13 +175,55 @@ export default function MarkdownMemoApp() {
 
   return (
     < div className="flex-1 flex flex-col h-full" >
+      <AlertDialog open={showSaveConfirmDialog} onOpenChange={setShowSaveConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>保存されていない変更があります</AlertDialogTitle>
+            <AlertDialogDescription>
+              現在のメモには保存されていない変更があります。保存しますか？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowSaveConfirmDialog(false);
+              setHasChanges(false); // 変更を破棄
+              if (nextPathProceedRef.current) {
+                nextPathProceedRef.current();
+                nextPathProceedRef.current = null;
+                nextPathRef.current = null;
+              }
+            }}>破棄</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              await handleSaveMemo();
+              setShowSaveConfirmDialog(false);
+              if (nextPathProceedRef.current) {
+                nextPathProceedRef.current();
+                nextPathProceedRef.current = null;
+                nextPathRef.current = null;
+              }
+            }}>保存</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* Header */}
       < div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0" >
         <Button variant="ghost" size="sm" onClick={handleNewMemo} className="h-7 w-7 p-0 hover:bg-gray-100">
           <PenSquare className="w-4 h-4" />
         </Button>
 
+        
+
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSaveMemo}
+            disabled={!hasChanges || !selectedMemo}
+            className="h-7 px-2 text-xs hover:bg-gray-100"
+          >
+            <Save className="w-3 h-3 mr-1" />
+            保存
+          </Button>
           <Button
             variant="ghost"
             size="sm"
