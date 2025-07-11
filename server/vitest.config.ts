@@ -7,12 +7,5 @@ export default defineConfig({
     environment: 'node',
     printConsoleTrace: true,
     setupFiles: ['./src/test-utils/setup.ts'],
-    deps: {
-      optimizer: {
-        ssr: {
-          include: ['@hono/node-server', '@hono/node-server/test'],
-        },
-      },
-    },
   },
 });

@@ -3,23 +3,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createMemoRoute } from './memo-route';
 import { MemoService } from '../services/memo-service';
 import { HonoVariables } from '../index';
-import { createClient } from '@hono/node-server/test';
-
-// Mock MemoService
-const mockMemoService: MemoService = {
-  createMemo: vi.fn(),
-  getMemoById: vi.fn(), // This is not used anymore, but keep it for completeness if other tests use it
-  getMemoByIdAndUserId: vi.fn(),
-  getMemosByUserId: vi.fn(),
-  updateMemo: vi.fn(),
-  deleteMemo: vi.fn(),
-};
 
 describe('Memo Routes', () => {
   let app: Hono<{ Variables: HonoVariables }>;
-  let client: ReturnType<typeof honoTesting.createClient>;
+  let mockMemoService: MemoService;
 
   beforeEach(() => {
+    mockMemoService = {
+      createMemo: vi.fn(),
+      getMemoById: vi.fn(),
+      getMemoByIdAndUserId: vi.fn(),
+      getMemosByUserId: vi.fn(),
+      updateMemo: vi.fn(),
+      deleteMemo: vi.fn(),
+    };
     vi.clearAllMocks();
     app = new Hono<{ Variables: HonoVariables }>();
     app.use('*', async (c, next) => {
@@ -28,7 +25,6 @@ describe('Memo Routes', () => {
       await next();
     });
     app.route('/memos', createMemoRoute(mockMemoService));
-    client = createClient(app);
   });
 
   // Test cases for GET /memos
@@ -36,7 +32,7 @@ describe('Memo Routes', () => {
     const mockMemos = [{ id: '1', content: 'Memo 1', userId: 'test-user-id' }];
     (mockMemoService.getMemosByUserId as vi.Mock).mockResolvedValue(mockMemos);
 
-    const res = await client.memos.get();
+    const res = await app.request('/memos');
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -45,11 +41,10 @@ describe('Memo Routes', () => {
   });
 
   it('should return 401 if user is not authenticated for GET /memos', async () => {
-    app = new Hono<{ Variables: HonoVariables }>(); // Reset app without JWT mock
-    app.route('/memos', createMemoRoute(mockMemoService));
-    client = createClient(app);
+    const unauthenticatedApp = new Hono<{ Variables: HonoVariables }>();
+    unauthenticatedApp.route('/memos', createMemoRoute(mockMemoService));
 
-    const res = await client.memos.get();
+    const res = await unauthenticatedApp.request('/memos');
     const json = await res.json();
 
     expect(res.status).toBe(401);
@@ -62,7 +57,7 @@ describe('Memo Routes', () => {
     const mockMemo = { id: '1', content: 'Memo 1', userId: 'test-user-id' };
     (mockMemoService.getMemoByIdAndUserId as vi.Mock).mockResolvedValue(mockMemo);
 
-    const res = await client.memos[':id'].get({ param: { id: '1' } });
+    const res = await app.request('/memos/1');
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -73,7 +68,7 @@ describe('Memo Routes', () => {
   it('should return 404 if memo not found or not owned by user for GET /memos/:id', async () => {
     (mockMemoService.getMemoByIdAndUserId as vi.Mock).mockResolvedValue(null);
 
-    const res = await client.memos[':id'].get({ param: { id: '999' } });
+    const res = await app.request('/memos/999');
     const json = await res.json();
 
     expect(res.status).toBe(404);
@@ -82,11 +77,10 @@ describe('Memo Routes', () => {
   });
 
   it('should return 401 if user is not authenticated for GET /memos/:id', async () => {
-    app = new Hono<{ Variables: HonoVariables }>(); // Reset app without JWT mock
-    app.route('/memos', createMemoRoute(mockMemoService));
-    client = createClient(app);
+    const unauthenticatedApp = new Hono<{ Variables: HonoVariables }>();
+    unauthenticatedApp.route('/memos', createMemoRoute(mockMemoService));
 
-    const res = await client.memos[':id'].get({ param: { id: '1' } });
+    const res = await unauthenticatedApp.request('/memos/1');
     const json = await res.json();
 
     expect(res.status).toBe(401);
@@ -100,7 +94,11 @@ describe('Memo Routes', () => {
     const createdMemo = { id: '2', content: 'New Memo', userId: 'test-user-id' };
     (mockMemoService.createMemo as vi.Mock).mockResolvedValue(createdMemo);
 
-    const res = await client.memos.post({ json: newMemoInput });
+    const res = await app.request('/memos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newMemoInput),
+    });
     const json = await res.json();
 
     expect(res.status).toBe(201);
@@ -109,11 +107,14 @@ describe('Memo Routes', () => {
   });
 
   it('should return 401 if user is not authenticated for POST /memos', async () => {
-    app = new Hono<{ Variables: HonoVariables }>(); // Reset app without JWT mock
-    app.route('/memos', createMemoRoute(mockMemoService));
-    client = createClient(app);
+    const unauthenticatedApp = new Hono<{ Variables: HonoVariables }>();
+    unauthenticatedApp.route('/memos', createMemoRoute(mockMemoService));
 
-    const res = await client.memos.post({ json: { content: 'New Memo' } });
+    const res = await unauthenticatedApp.request('/memos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: 'New Memo' }),
+    });
     const json = await res.json();
 
     expect(res.status).toBe(401);
@@ -127,7 +128,11 @@ describe('Memo Routes', () => {
     const updatedMemo = { id: '1', content: 'Updated Memo', userId: 'test-user-id' };
     (mockMemoService.updateMemo as vi.Mock).mockResolvedValue(updatedMemo);
 
-    const res = await client.memos[':id'].patch({ param: { id: '1' }, json: updatedMemoInput });
+    const res = await app.request('/memos/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedMemoInput),
+    });
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -138,7 +143,11 @@ describe('Memo Routes', () => {
   it('should return 404 if memo not found or not owned by user for PATCH /memos/:id', async () => {
     (mockMemoService.updateMemo as vi.Mock).mockResolvedValue(null);
 
-    const res = await client.memos[':id'].patch({ param: { id: '999' }, json: { content: 'Updated' } });
+    const res = await app.request('/memos/999', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: 'Updated' }),
+    });
     const json = await res.json();
 
     expect(res.status).toBe(404);
@@ -147,11 +156,14 @@ describe('Memo Routes', () => {
   });
 
   it('should return 401 if user is not authenticated for PATCH /memos/:id', async () => {
-    app = new Hono<{ Variables: HonoVariables }>(); // Reset app without JWT mock
-    app.route('/memos', createMemoRoute(mockMemoService));
-    client = createClient(app);
+    const unauthenticatedApp = new Hono<{ Variables: HonoVariables }>();
+    unauthenticatedApp.route('/memos', createMemoRoute(mockMemoService));
 
-    const res = await client.memos[':id'].patch({ param: { id: '1' }, json: { content: 'Updated' } });
+    const res = await unauthenticatedApp.request('/memos/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: 'Updated' }),
+    });
     const json = await res.json();
 
     expect(res.status).toBe(401);
@@ -163,7 +175,9 @@ describe('Memo Routes', () => {
   it('should delete a memo for an authenticated user who owns it', async () => {
     (mockMemoService.deleteMemo as vi.Mock).mockResolvedValue(true); // Indicate successful deletion
 
-    const res = await client.memos[':id'].delete({ param: { id: '1' } });
+    const res = await app.request('/memos/1', {
+      method: 'DELETE',
+    });
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -174,7 +188,9 @@ describe('Memo Routes', () => {
   it('should return 404 if memo not found or not owned by user for DELETE /memos/:id', async () => {
     (mockMemoService.deleteMemo as vi.Mock).mockResolvedValue(null); // Indicate not found or unauthorized
 
-    const res = await client.memos[':id'].delete({ param: { id: '999' } });
+    const res = await app.request('/memos/999', {
+      method: 'DELETE',
+    });
     const json = await res.json();
 
     expect(res.status).toBe(404);
@@ -183,11 +199,12 @@ describe('Memo Routes', () => {
   });
 
   it('should return 401 if user is not authenticated for DELETE /memos/:id', async () => {
-    app = new Hono<{ Variables: HonoVariables }>(); // Reset app without JWT mock
-    app.route('/memos', createMemoRoute(mockMemoService));
-    client = createClient(app);
+    const unauthenticatedApp = new Hono<{ Variables: HonoVariables }>();
+    unauthenticatedApp.route('/memos', createMemoRoute(mockMemoService));
 
-    const res = await client.memos[':id'].delete({ param: { id: '1' } });
+    const res = await unauthenticatedApp.request('/memos/1', {
+      method: 'DELETE',
+    });
     const json = await res.json();
 
     expect(res.status).toBe(401);
