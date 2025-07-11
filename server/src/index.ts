@@ -16,6 +16,8 @@ export type HonoVariables = {
   jwtPayload: MyJwtPayload
 }
 
+const memoService = container.get<MemoService>(TYPES.MemoService);
+
 export const app = new Hono<{ Variables: HonoVariables }>()
   .use(logger())
   .use(cors())
@@ -53,14 +55,15 @@ export const app = new Hono<{ Variables: HonoVariables }>()
     } as MyJwtPayload);
     await next();
   })
-  .get('/', (c) => {
+  .get('/', async (c) => {
     return c.json({
       message: 'Hello it\'s working!',
-    });
+    })
   })
-  .route('/memos', createMemoRoute(container.get<MemoService>(TYPES.MemoService)))
+  .route('/memos', createMemoRoute(memoService))
 
 export type AppType = typeof app;
+
 const port = parseInt(process.env.PORT ?? "", 10) || 5432;
 
 const server = serve({

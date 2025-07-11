@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import z from 'zod';
 import { MemoService } from '@/services/memo-service';
-import { CreateMemoSchema, UpdateMemoSchema } from '@/db/types';
+import { CreateMemoSchema, UpdateMemoSchema, SelectMemoSchema } from '@/db/types';
 import { HonoVariables } from '@/index';
 
 export const ParamIdSchema = z.object({
@@ -43,7 +43,6 @@ export const createMemoRoute = (memoService: MemoService) => {
       return c.json(memo, 201);
     }
   )
-
   .patch(
     '/:id',
     zValidator('param', ParamIdSchema),
@@ -60,7 +59,6 @@ export const createMemoRoute = (memoService: MemoService) => {
       return c.json(updated);
     }
   )
-
   .delete(
     '/:id',
     zValidator('param', ParamIdSchema),

@@ -29,12 +29,12 @@ export class LibsqlMemoRepository implements MemoRepository {
     await this.db.delete(memos).where(eq(memos.id, memoId));
   }
 
-  async getMemoById(memoId: string): Promise<SelectMemoInput | null> {
+  async getMemoById(memoId: string): Promise<SelectMemoInput> {
     const [memo] = await this.db.select().from(memos).where(eq(memos.id, memoId));
     return memo ?? null;
   }
 
-  async getMemosByUserId(userId: string): Promise<SelectMemoInput[] | null> {
+  async getMemosByUserId(userId: string): Promise<SelectMemoInput[]> {
     const userMemos = await this.db.select().from(memos).where(eq(memos.userId, userId)).orderBy(desc(memos.updatedAt));
     return userMemos;
   }

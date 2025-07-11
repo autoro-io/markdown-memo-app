@@ -1,20 +1,17 @@
 import { Memo } from "@/type/type";
 import { appClient } from "@/lib/api-client";
 import { MemoService } from "./memo-service";
-import { SelectMemoInput } from "../../../server/src/db/types";
 
 export class ServerMemoService extends MemoService {
   async getMemos(): Promise<Memo[]> {
     try {
       const response = await appClient.memos.$get();
 
-      console.log('Response from server:', response);
-      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data: SelectMemoInput[] = await response.json();
+      const data = await response.json();
 
       // サーバーサイドのレスポンスをフロントエンドのMemo型に変換
       return data.map((memo) => ({
@@ -43,7 +40,7 @@ export class ServerMemoService extends MemoService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data: SelectMemoInput = await response.json();
+      const data = await response.json();
       
       // サーバーサイドのレスポンスをフロントエンドのMemo型に変換
       return {
@@ -71,7 +68,7 @@ export class ServerMemoService extends MemoService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data: SelectMemoInput = await response.json();
+      const data = await response.json();
       
       // サーバーサイドのレスポンスをフロントエンドのMemo型に変換
       return {

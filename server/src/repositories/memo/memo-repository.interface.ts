@@ -5,6 +5,6 @@ export interface MemoRepository {
   updateMemo(memoId: string, data: UpdateMemoInput): Promise<SelectMemoInput>;
   deleteMemo(memoId: string): Promise<void>;
   getAllMemos(): Promise<SelectMemoInput[]>;
-  getMemoById(memoId: string): Promise<SelectMemoInput | null>;
-  getMemosByUserId(userId: string): Promise<SelectMemoInput[] | null>;
+  getMemoById(memoId: string): Promise<SelectMemoInput>;
+  getMemosByUserId(userId: string): Promise<SelectMemoInput[]>;
 }
