@@ -52,6 +52,7 @@ function AppContent({
   const [selectedMemos, setSelectedMemos] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState("")
   const [isShiftPressed, setIsShiftPressed] = useState(false)
+  const [lastSelectedMemoId, setLastSelectedMemoId] = useState<string | null>(null)
 
   const currentMemoId = params.id as string
   
@@ -101,18 +102,39 @@ function AppContent({
   const handleMemoSelect = (memo: Memo) => {
     if (!memo.id) return;
 
-    if (isShiftPressed) {
-      const newSelected = new Set(selectedMemos)
-      if (newSelected.has(memo.id)) {
-        newSelected.delete(memo.id)
+    if (isShiftPressed && lastSelectedMemoId) {
+      const newSelected = new Set(selectedMemos);
+      const currentIndex = filteredMemos.findIndex(m => m.id === memo.id);
+      const lastIndex = filteredMemos.findIndex(m => m.id === lastSelectedMemoId);
+
+      if (currentIndex === -1 || lastIndex === -1) {
+        // Fallback to single selection if indices are not found
+        newSelected.clear();
+        newSelected.add(memo.id);
       } else {
-        newSelected.add(memo.id)
+        const startIndex = Math.min(currentIndex, lastIndex);
+        const endIndex = Math.max(currentIndex, lastIndex);
+
+        for (let i = startIndex; i <= endIndex; i++) {
+          newSelected.add(filteredMemos[i].id!);
+        }
       }
-      setSelectedMemos(newSelected)
-      console.log('Selected memos:', Array.from(newSelected))
+      setSelectedMemos(newSelected);
+      setLastSelectedMemoId(memo.id);
+    } else if (isShiftPressed) {
+      // If shift is pressed but no lastSelectedMemoId, just select the current one
+      const newSelected = new Set(selectedMemos);
+      if (newSelected.has(memo.id)) {
+        newSelected.delete(memo.id);
+      } else {
+        newSelected.add(memo.id);
+      }
+      setSelectedMemos(newSelected);
+      setLastSelectedMemoId(memo.id);
     } else {
-      setSelectedMemos(new Set())
-      router.push(`/memos/${memo.id}`)
+      setSelectedMemos(new Set([memo.id])); // Select only the current memo
+      setLastSelectedMemoId(memo.id);
+      router.push(`/memos/${memo.id}`);
     }
   }
 
@@ -198,7 +220,7 @@ function AppContent({
         </div>
 
         {/* Memo List */}
-        <div className={cn("flex-1 overflow-y-auto min-h-0", isShiftPressed && "select-none")}>
+        <div className="flex-1 overflow-y-auto min-h-0 select-none no-select-safari">
           {Object.entries(groupedMemos).map(([date, memos]) => (
             <div key={date}>
               <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50">{date}</div>

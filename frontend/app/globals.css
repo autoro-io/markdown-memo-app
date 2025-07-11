@@ -10,6 +10,10 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .no-select-safari {
+    -webkit-user-select: none; /* Safari */
+    user-select: none;
+  }
 }
 
 @layer base {
