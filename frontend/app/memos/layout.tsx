@@ -46,7 +46,7 @@ function AppContent({
 }>) {
   const router = useRouter()
   const params = useParams()
-  const { memos, setMemos, deleteMemo } = useMemos()
+  const { memos, setMemos, deleteMemo, createMemo } = useMemos()
   const { signOut } = useAuth()
   
   const [selectedMemos, setSelectedMemos] = useState<Set<string>>(new Set())

@@ -3,9 +3,11 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useMemos } from "@/hooks/use-memos"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 
 export default function MemosRedirectPage() {
-  const { memos, loading } = useMemos()
+  const { memos, loading, createMemo } = useMemos()
   const router = useRouter()
 
   useEffect(() => {
@@ -15,15 +17,40 @@ export default function MemosRedirectPage() {
       if (latestMemo && latestMemo.id) {
         router.replace(`/memos/${latestMemo.id}`)
       }
-    } else if (!loading && memos.length === 0) {
-      // Handle case with no memos, maybe show a message or create one
-      // For now, just indicating loading
     }
   }, [memos, loading, router])
 
-  return (
-    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-      <p>メモを読み込んでいます...</p>
-    </div>
-  )
+  const handleCreateNewMemo = async () => {
+    const newMemo = await createMemo({
+      title: "新しいメモ",
+      content: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    if (newMemo && newMemo.id) {
+      router.push(`/memos/${newMemo.id}`)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+        <p>メモを読み込んでいます...</p>
+      </div>
+    )
+  }
+
+  if (memos.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm px-4 text-center">
+        <p className="mb-4">まだメモがありません。</p>
+        <Button onClick={handleCreateNewMemo}>
+          <Plus className="w-4 h-4 mr-2" />
+          新しいメモを作成
+        </Button>
+      </div>
+    )
+  }
+
+  return null
 }
