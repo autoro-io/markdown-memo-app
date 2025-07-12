@@ -7,6 +7,8 @@ import { users, memos } from '@/db/schema';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import { testClient } from 'hono/testing';
 import { MyJwtPayload } from '@/libs/jwt';
+
+// Import order matters for the test client to work correctly
 import { memoRoute } from './memo-route';
 
 const db = container.get<LibSQLDatabase>(TYPES.LibSQLDatabase);
