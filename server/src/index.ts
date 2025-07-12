@@ -1,22 +1,18 @@
 import 'reflect-metadata';
+import { container } from './inversify.config';
 import dotenv from 'dotenv';
 dotenv.config();
 import { Hono, Next } from "hono";
 import { cors } from "hono/cors";
 import { serve } from '@hono/node-server';
 import { logger } from 'hono/logger';
-import { container } from './inversify.config';
-import { TYPES } from './types';
 import { verifyJwt } from "./libs/jwt";
 import { MyJwtPayload } from "./libs/jwt";
-import { createMemoRoute } from "./routes/memo-route";
-import { MemoService } from "./services/memo-service";
+import { memoRoute } from "./routes/memo-route";
 
 export type HonoVariables = {
   jwtPayload: MyJwtPayload
 }
-
-const memoService = container.get<MemoService>(TYPES.MemoService);
 
 export const app = new Hono<{ Variables: HonoVariables }>()
   .use(logger())
@@ -60,7 +56,7 @@ export const app = new Hono<{ Variables: HonoVariables }>()
       message: 'Hello it\'s working!',
     })
   })
-  .route('/memos', createMemoRoute(memoService))
+  .route('/memos', memoRoute)
 
 export type AppType = typeof app;
 

@@ -1,16 +1,16 @@
-import { container } from "@/test-utils/inversify.config";
 import { TYPES } from '@/types';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { MemoService } from "./memo-service";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "@/db/schema";
+import { container } from "@/test-utils/inversify.config";
 
 describe("MemoService integration test", () => {
   let memoService: MemoService;
-  let db: LibSQLDatabase<typeof schema>;
+  let db: LibSQLDatabase;
 
   beforeAll(async () => {
-    db = container.get<LibSQLDatabase<typeof schema>>(TYPES.LibSQLDatabase);
+    db = container.get<LibSQLDatabase>(TYPES.LibSQLDatabase);
     await db.insert(schema.users).values({
       id: "user1",
       name: "Test User",

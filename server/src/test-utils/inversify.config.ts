@@ -1,18 +1,9 @@
-import { Container } from 'inversify';
-import { MemoRepository } from '../repositories/memo/memo-repository.interface';
-import { LibsqlMemoRepository } from '../repositories/memo/libsql-memo-repository';
+import { container } from '@/inversify.config';
 import { TYPES } from '@/types';
-import { MemoService } from '@/services/memo-service';
-import { db } from '@/test-utils/setup';
+import { db as testDb } from './libsql';
+import { LibSQLDatabase } from 'drizzle-orm/libsql';
 
-const container = new Container();
-
-container.bind<typeof db>(TYPES.LibSQLDatabase).toConstantValue(db);
-
-// Repositories
-container.bind<MemoRepository>(TYPES.MemoRepository).to(LibsqlMemoRepository);
-
-// Services
-container.bind<MemoService>(TYPES.MemoService).to(MemoService);
+await container.unbind(TYPES.LibSQLDatabase);
+container.bind<LibSQLDatabase>(TYPES.LibSQLDatabase).toConstantValue(testDb);
 
 export { container };

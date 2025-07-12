@@ -6,7 +6,7 @@ export interface MyJwtPayload extends JWTPayload {
   sub: string;
   exp: number;
   iat: number;
-  role: string; 
+  role?: string; 
 }
 
 export async function verifyJwt(token: string): Promise<MyJwtPayload | null> {

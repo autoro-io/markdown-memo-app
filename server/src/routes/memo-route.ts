@@ -4,13 +4,16 @@ import z from 'zod';
 import { MemoService } from '@/services/memo-service';
 import { CreateMemoSchema, UpdateMemoSchema, SelectMemoSchema } from '@/db/types';
 import { HonoVariables } from '@/index';
+import { container } from '@/inversify.config';
+import { TYPES } from '@/types';
+
+const memoService = container.get<MemoService>(TYPES.MemoService);
 
 export const ParamIdSchema = z.object({
   id: z.string(),
 });
 
-export const createMemoRoute = (memoService: MemoService) => {
-  const app = new Hono<{ Variables: HonoVariables }>()
+export const memoRoute = new Hono<{ Variables: HonoVariables }>()
   .get(
     '/',
     async (c) => {
@@ -83,8 +86,5 @@ export const createMemoRoute = (memoService: MemoService) => {
       }
       return c.json({ status: 'deleted' });
     }
-  )
-
-  return app;
-};
+);
 
