@@ -38,6 +38,7 @@ export class MemoService {
     if (!memo || memo.userId !== userId) {
       return null;
     }
-    return this.memoRepository.deleteMemo(memoId);
+    await this.memoRepository.deleteMemo(memoId);
+    return true;
   }
 }
