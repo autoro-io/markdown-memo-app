@@ -1,7 +1,7 @@
 import { AuthService } from "./auth-service.interface";
 import { MockAuthService } from "./mock-auth-service";
 import { SupabaseAuthService } from "./supabase-auth-service";
-import { supabase } from "../../lib/supabase";
+import { getSupabaseClient } from "../../lib/supabase";
 
 export class AuthServiceFactory {
   static create(): AuthService {
@@ -11,7 +11,7 @@ export class AuthServiceFactory {
     if (useMock) {
       return new MockAuthService();
     } else {
-      return new SupabaseAuthService(supabase);
+      return new SupabaseAuthService(getSupabaseClient());
     }
   }
 }
