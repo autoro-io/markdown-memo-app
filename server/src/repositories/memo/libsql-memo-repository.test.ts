@@ -2,26 +2,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LibsqlMemoRepository } from './libsql-memo-repository';
 import { CreateMemoInput, UpdateMemoInput, SelectMemoInput } from '../../db/types';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
+import * as schema from '../../db/schema'; // schemaをインポート
 
-// Drizzle ORM のメソッドをモック
+// --- モックの準備 ---
+// Drizzleの各メソッドをモックします。
 const mockDb = {
-  insert: vi.fn().mockReturnThis(),
-  values: vi.fn().mockReturnThis(),
-  returning: vi.fn(),
-  update: vi.fn().mockReturnThis(),
-  set: vi.fn().mockReturnThis(),
-  where: vi.fn().mockReturnThis(),
-  delete: vi.fn().mockReturnThis(),
-  select: vi.fn().mockReturnThis(),
-  from: vi.fn().mockReturnThis(),
-  orderBy: vi.fn().mockReturnThis(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+  select: vi.fn(),
 } as unknown as LibSQLDatabase;
+
 
 describe('LibsqlMemoRepository', () => {
   let repository: LibsqlMemoRepository;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // 各テストの前にすべてのモックをリセットします。
+    vi.mocked(mockDb.insert).mockClear();
+    vi.mocked(mockDb.update).mockClear();
+    vi.mocked(mockDb.delete).mockClear();
+    vi.mocked(mockDb.select).mockClear();
+    
     repository = new LibsqlMemoRepository(mockDb);
   });
 
@@ -29,17 +31,18 @@ describe('LibsqlMemoRepository', () => {
     const createMemoInput: CreateMemoInput = { userId: 'user1', content: 'Test Memo' };
     const expectedMemo: SelectMemoInput = { id: 'memo1', userId: 'user1', content: 'Test Memo', createdAt: new Date(), updatedAt: new Date() };
 
-    // モックの設定
-    vi.spyOn(mockDb, 'insert').mockReturnValueOnce({
-      values: vi.fn().mockReturnValueOnce({
-        returning: vi.fn().mockResolvedValueOnce([expectedMemo]),
-      }),
-    } as any);
+    const returningMock = vi.fn().mockResolvedValueOnce([expectedMemo]);
+    const valuesMock = vi.fn().mockReturnValue({ returning: returningMock });
+    vi.mocked(mockDb.insert).mockReturnValue({
+      values: valuesMock,
+    } as unknown as ReturnType<typeof mockDb.insert>);
 
     const result = await repository.createMemo(createMemoInput);
 
     expect(result).toEqual(expectedMemo);
-    expect(mockDb.insert).toHaveBeenCalledTimes(1);
+    expect(mockDb.insert).toHaveBeenCalledWith(schema.memos);
+    expect(valuesMock).toHaveBeenCalledWith(createMemoInput);
+    expect(returningMock).toHaveBeenCalled();
   });
 
   it('should update a memo', async () => {
@@ -47,65 +50,69 @@ describe('LibsqlMemoRepository', () => {
     const updateMemoInput: UpdateMemoInput = { content: 'Updated Memo' };
     const expectedMemo: SelectMemoInput = { id: 'memo1', userId: 'user1', content: 'Updated Memo', createdAt: new Date(), updatedAt: new Date() };
 
-    // モックの設定
-    vi.spyOn(mockDb, 'update').mockReturnValueOnce({
-      set: vi.fn().mockReturnValueOnce({
-        where: vi.fn().mockReturnValueOnce({
-          returning: vi.fn().mockResolvedValueOnce([expectedMemo]),
-        }),
-      }),
-    } as any);
+    const returningMock = vi.fn().mockResolvedValueOnce([expectedMemo]);
+    const whereMock = vi.fn().mockReturnValue({ returning: returningMock });
+    const setMock = vi.fn().mockReturnValue({ where: whereMock });
+    vi.mocked(mockDb.update).mockReturnValue({
+      set: setMock,
+    } as unknown as ReturnType<typeof mockDb.update>);
 
     const result = await repository.updateMemo(memoId, updateMemoInput);
 
     expect(result).toEqual(expectedMemo);
-    expect(mockDb.update).toHaveBeenCalledTimes(1);
+    expect(mockDb.update).toHaveBeenCalledWith(schema.memos);
+    expect(setMock).toHaveBeenCalledWith(expect.objectContaining(updateMemoInput));
+    expect(whereMock).toHaveBeenCalled();
+    expect(returningMock).toHaveBeenCalled();
   });
 
   it('should delete a memo', async () => {
     const memoId = 'memo1';
 
-    // モックの設定
-    vi.spyOn(mockDb, 'delete').mockReturnValueOnce({
-      where: vi.fn().mockResolvedValueOnce(undefined),
-    } as any);
+    const whereMock = vi.fn().mockResolvedValueOnce(undefined);
+    vi.mocked(mockDb.delete).mockReturnValue({
+      where: whereMock,
+    } as unknown as ReturnType<typeof mockDb.delete>);
 
     await repository.deleteMemo(memoId);
 
-    expect(mockDb.delete).toHaveBeenCalledTimes(1);
+    expect(mockDb.delete).toHaveBeenCalledWith(schema.memos);
+    expect(whereMock).toHaveBeenCalled();
   });
 
   it('should get a memo by id', async () => {
     const memoId = 'memo1';
     const expectedMemo: SelectMemoInput = { id: 'memo1', userId: 'user1', content: 'Test Memo', createdAt: new Date(), updatedAt: new Date() };
 
-    // モックの設定
-    vi.spyOn(mockDb, 'select').mockReturnValueOnce({
-      from: vi.fn().mockReturnValueOnce({
-        where: vi.fn().mockResolvedValueOnce([expectedMemo]),
-      }),
-    } as any);
+    const whereMock = vi.fn().mockResolvedValueOnce([expectedMemo]);
+    const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+    vi.mocked(mockDb.select).mockReturnValue({
+      from: fromMock,
+    } as unknown as ReturnType<typeof mockDb.select>);
 
     const result = await repository.getMemoById(memoId);
 
     expect(result).toEqual(expectedMemo);
-    expect(mockDb.select).toHaveBeenCalledTimes(1);
+    expect(mockDb.select).toHaveBeenCalled();
+    expect(fromMock).toHaveBeenCalledWith(schema.memos);
+    expect(whereMock).toHaveBeenCalled();
   });
 
   it('should return null when memo is not found by id', async () => {
     const memoId = 'not-found';
 
-    // モックの設定
-    vi.spyOn(mockDb, 'select').mockReturnValueOnce({
-      from: vi.fn().mockReturnValueOnce({
-        where: vi.fn().mockResolvedValueOnce([]),
-      }),
-    } as any);
+    const whereMock = vi.fn().mockResolvedValueOnce([]);
+    const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+    vi.mocked(mockDb.select).mockReturnValue({
+      from: fromMock,
+    } as unknown as ReturnType<typeof mockDb.select>);
 
     const result = await repository.getMemoById(memoId);
 
     expect(result).toBeNull();
-    expect(mockDb.select).toHaveBeenCalledTimes(1);
+    expect(mockDb.select).toHaveBeenCalled();
+    expect(fromMock).toHaveBeenCalledWith(schema.memos);
+    expect(whereMock).toHaveBeenCalled();
   });
 
   it('should get memos by user id', async () => {
@@ -115,18 +122,19 @@ describe('LibsqlMemoRepository', () => {
       { id: 'memo2', userId: 'user1', content: 'Test Memo 2', createdAt: new Date(), updatedAt: new Date() },
     ];
 
-    // モックの設定
-    vi.spyOn(mockDb, 'select').mockReturnValueOnce({
-      from: vi.fn().mockReturnValueOnce({
-        where: vi.fn().mockReturnValueOnce({
-          orderBy: vi.fn().mockResolvedValueOnce(expectedMemos),
-        }),
-      }),
-    } as any);
+    const orderByMock = vi.fn().mockResolvedValueOnce(expectedMemos);
+    const whereMock = vi.fn().mockReturnValue({ orderBy: orderByMock });
+    const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+    vi.mocked(mockDb.select).mockReturnValue({
+      from: fromMock,
+    } as unknown as ReturnType<typeof mockDb.select>);
 
     const result = await repository.getMemosByUserId(userId);
 
     expect(result).toEqual(expectedMemos);
-    expect(mockDb.select).toHaveBeenCalledTimes(1);
+    expect(mockDb.select).toHaveBeenCalled();
+    expect(fromMock).toHaveBeenCalledWith(schema.memos);
+    expect(whereMock).toHaveBeenCalled();
+    expect(orderByMock).toHaveBeenCalled();
   });
 });

@@ -295,7 +295,7 @@ export default function MarkdownMemoApp() {
                         return !inline && match ? (
                           <div className="bg-gray-900 rounded-lg p-4 mb-4 border border-gray-700">
                             <SyntaxHighlighter
-                              style={tomorrow as any}
+                              style={tomorrow}
                               language={match[1]}
                               PreTag="div"
                               className="!bg-transparent !text-xs !leading-5 !font-mono overflow-x-auto"
