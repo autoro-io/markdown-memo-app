@@ -5,11 +5,6 @@
     "drizzle.config.ts",
     "vitest.config.ts",
   ],
-  "exclude": [
-    "src/test-utils",
-    "**/*.test.ts",
-    "**/*.integration.test.ts"
-  ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
     /* Projects */
