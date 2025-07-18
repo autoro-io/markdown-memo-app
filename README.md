@@ -70,6 +70,14 @@ Next.js (App Router) の標準的な構成をベースに、バックエンド�
 
 ## 開発環境のセットアップ
 
+### バックエンド
+
+```shell
+$ cd server
+$ pnpm install
+$ pnpm db:setup
+```
+
 ### フロントエンド
 
 ```shell
@@ -78,13 +86,6 @@ $ pnpm install
 $ pnpm dev
 ```
 
-### バックエンド
-
-```shell
-$ cd server
-$ pnpm install
-$ pnpm db:setup
-```
 
 NextJS に Hono をマウントしたので、 `pnpm dev` で hono server を立ち上げる必要はありません。
 ブラウザで、`http://localhost:3000/memos` を開いてください。
