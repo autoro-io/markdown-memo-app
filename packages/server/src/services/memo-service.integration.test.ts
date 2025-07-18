@@ -1,9 +1,9 @@
-import { TYPES } from '@/types';
+import { TYPES } from '@/server/types';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { MemoService } from "./memo-service";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
-import * as schema from "@/db/schema";
-import { container } from "@/test-utils/inversify.config";
+import * as schema from "@/server/db/schema";
+import { container } from "@/server/test-utils/inversify.config";
 
 describe("MemoService integration test", () => {
   let memoService: MemoService;

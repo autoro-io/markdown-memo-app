@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { container } from '@/test-utils/inversify.config'
-import type { MemoService } from '@/services/memo-service';
-import { TYPES } from '@/types';
-import { users, memos } from '@/db/schema';
+import { container } from '@/server/test-utils/inversify.config'
+import type { MemoService } from '@/server/services/memo-service';
+import { TYPES } from '@/server/types';
+import { users, memos } from '@/server/db/schema';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import { testClient } from 'hono/testing';
-import { MyJwtPayload } from '@/frontend/libs/jwt';
+import { MyJwtPayload } from '@/server/libs/jwt';
 
 // Import order matters for the test client to work correctly
 import { memoRoute } from './memo-route';

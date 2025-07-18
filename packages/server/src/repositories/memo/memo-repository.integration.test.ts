@@ -1,11 +1,11 @@
 import "reflect-metadata";
-import { container } from "@/test-utils/inversify.config";
-import { TYPES } from '@/types';
+import { container } from "@/server/test-utils/inversify.config";
+import { TYPES } from '@/server/types';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { MemoRepository } from "./memo-repository.interface";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
 import { eq } from "drizzle-orm";
-import * as schema from "@/db/schema";
+import * as schema from "@/server/db/schema";
 
 describe("MemoRepository integration test", () => {
   let memoRepository: MemoRepository;

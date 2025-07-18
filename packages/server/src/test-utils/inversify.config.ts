@@ -1,5 +1,5 @@
-import { container } from '@/inversify.config';
-import { TYPES } from '@/types';
+import { container } from '@/server/inversify.config';
+import { TYPES } from '@/server/types';
 import { db as testDb } from './libsql';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 
