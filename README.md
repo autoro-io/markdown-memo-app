@@ -86,9 +86,18 @@ $ pnpm install
 $ pnpm dev
 ```
 
-このサンプルでは、NextJS に Hono をマウントしたので、 `pnpm dev` で hono server を立ち上げる必要はありません。
-ブラウザで、`http://localhost:3000/memos` を開いてください。
+このサンプルでは、NextJS に Hono をマウントしたので、 `pnpm dev` で hono server を立ち上げる必要はありません。ブラウザで、`http://localhost:3000/memos` を開いてください。
 
-### バックエンド
+## バックエンドとフロントエンドを分けて実行する場合
 
-NextJS に統合
+#### APIの向かう先を変更する
+
+`frontend/.end` を編集して、`NEXT_PUBLIC_SERVER_URL=5432` にする
+
+#### バックエンドも実行する
+
+```sh
+$ cd server
+$ pnpm install
+$ pnpm dev
+```
