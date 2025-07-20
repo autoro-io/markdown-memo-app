@@ -1,5 +1,4 @@
 // NextJSが、LibSQL ライブラリを読み込もうとして動作しない問題を解決できず
-
 import "reflect-metadata";
 
 import { handle } from 'hono/vercel'

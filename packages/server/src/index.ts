@@ -65,12 +65,12 @@ export const app = new Hono<{ Variables: HonoVariables }>().basePath('/api')
 
 export type AppType = typeof app;
 
-// const port = parseInt(process.env.PORT ?? "", 10) || 5432;
+const port = parseInt(process.env.PORT ?? "", 10) || 5432;
 
-// const server = serve({
-//   fetch: app.fetch,
-//   port: port,
-// });
+const server = serve({
+  fetch: app.fetch,
+  port: port,
+});
 
-// console.log(`Server is running on http://localhost:${port}`);
-// server.setTimeout(60 * 1000); // Set timeout to 60 seconds
+console.log(`Server is running on http://localhost:${port}`);
+server.setTimeout(60 * 1000); // Set timeout to 60 seconds
